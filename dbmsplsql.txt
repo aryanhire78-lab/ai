@@ -1,0 +1,65 @@
+CREATE DATABASE PR4;
+USE PR4;
+
+-- Borrower Table
+CREATE TABLE Borrower(
+    Roll_no INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Date_of_Issue DATE,
+    Book VARCHAR(50),
+    Status CHAR(1)
+);
+
+-- Fine Table
+CREATE TABLE Fine(
+    Roll_no INT,
+    Fine_Amt INT
+);
+
+-- Sample Data
+INSERT INTO Borrower VALUES
+(101,'Aarav','2025-04-01','DBMS','I'),
+(102,'Sneha','2025-04-20','AI','I');
+
+DELIMITER $$
+
+CREATE PROCEDURE ReturnBook(IN rno INT)
+BEGIN
+    DECLARE days INT;
+    DECLARE fine INT DEFAULT 0;
+
+    -- Calculate days
+    SELECT DATEDIFF(CURDATE(), Date_of_Issue)
+    INTO days
+    FROM Borrower
+    WHERE Roll_no = rno;
+
+    -- Fine Logic
+    IF days > 15 AND days <= 30 THEN
+        SET fine = (days - 15) * 5;
+
+    ELSEIF days > 30 THEN
+        SET fine = ((days - 30) * 50) + (15 * 5);
+    END IF;
+
+    -- Update Status
+    UPDATE Borrower
+    SET Status = 'R'
+    WHERE Roll_no = rno;
+
+    -- Insert Fine
+    IF fine > 0 THEN
+        INSERT INTO Fine VALUES(rno, fine);
+    END IF;
+
+    SELECT fine AS Fine_Amount;
+END$$
+
+DELIMITER ;
+
+-- Call Procedure
+CALL ReturnBook(101);
+
+-- View Tables
+SELECT * FROM Borrower;
+SELECT * FROM Fine;
